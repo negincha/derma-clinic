@@ -1,39 +1,41 @@
-'use client';
-import React, { useState, useEffect } from "react";
-
-export default function BlogPage() {
-  const [articles, setArticles] = useState([]);
-
-  // گرفتنِ مقالات از وردپرس
-  useEffect(() => {
-    fetch("https://derma-clinic.ir/?graphql", {
+export default async function AllPostsPage() {
+  let posts = [];
+  
+  try {
+    const res = await fetch("https://derma-clinic.ir/?graphql", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        query: `query { posts(first: 6) { nodes { title excerpt uri } } }`,
+        query: `query { posts(first: 50) { nodes { title uri } } }`,
       }),
-    })
-      .then((res) => res.json())
-      .then((res) => setArticles(res.data.posts.nodes));
-  }, []);
+      cache: 'no-store' // این خط باعث می‌شود در هر لحظه درخواست تازه ارسال شود
+    });
+
+    const json = await res.json();
+    if (json.data && json.data.posts) {
+      posts = json.data.posts.nodes;
+    }
+  } catch (error) {
+    console.error("خطا در اتصال به وردپرس:", error);
+    // اگر وردپرس وصل نبود، بیلد کرش نمی‌کند و فقط لیست خالی نمایش می‌دهد
+  }
 
   return (
-    <div className="bg-slate-50 min-h-screen py-16" dir="rtl">
-      <div className="container mx-auto px-4 max-w-5xl">
-        <div className="text-center max-w-xl mx-auto mb-16">
-          <h1 className="text-3xl font-extrabold text-slate-800">آخرین مقالات و اخبار سلامت زخم</h1>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {articles.map((article: any, index) => (
-            <article key={index} className="bg-white rounded-2xl p-6 shadow-xl border border-slate-100">
-              <h3 className="text-lg font-bold text-slate-800 mb-3">{article.title}</h3>
-              <p className="text-slate-500 text-sm mb-6" dangerouslySetInnerHTML={{ __html: article.excerpt }} />
-              <a href={article.uri} className="text-teal-600 font-bold">مطالعه مقاله ←</a>
-            </article>
+    <div className="max-w-4xl mx-auto p-8" dir="rtl">
+      <h1 className="text-3xl font-bold mb-8 text-teal-900">آرشیو کامل مقالات</h1>
+      {posts.length === 0 ? (
+        <p>در حال حاضر مقاله‌ای یافت نشد یا ارتباط با سرور برقرار نیست.</p>
+      ) : (
+        <ul className="space-y-4">
+          {posts.map((post: any) => (
+            <li key={post.uri} className="border-b pb-4">
+              <a href={post.uri} className="text-lg font-medium text-slate-700 hover:text-teal-600 transition-colors">
+                {post.title}
+              </a>
+            </li>
           ))}
-        </div>
-      </div>
+        </ul>
+      )}
     </div>
   );
 }

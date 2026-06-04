@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  images: {
-    unoptimized: true,
-  },
+  // این تنظیمات باعث می‌شود روت‌های شما در نتلیفای به درستی شناخته شوند
+  output: 'standalone', 
 }
 
 module.exports = nextConfig
